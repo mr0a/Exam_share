@@ -17,11 +17,14 @@ from django.contrib import admin
 from django.urls import path
 from django.conf.urls import include
 from django.views.generic import TemplateView
+from exam import views
 
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='social_app/index.html')),
-    path('accounts/logout/', TemplateView.as_view(template_name='social_app/logout.html')),
+    path('', views.index),
+    path('exam/<int:exam_id>', views.exam_part, name='exam'),
+    path('part/<int:part_id>', views.questions, name='questions'),
+    path('option/<int:question_id>', views.options),
     path('admin/', admin.site.urls),
     path('chat/', include('chatapp.urls')),
     path('accounts/', include('allauth.urls')),

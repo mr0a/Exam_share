@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 
     'chatapp',
     'social_app',
+    'exam',
 ]
 
 MIDDLEWARE = [
@@ -130,7 +131,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -167,6 +168,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
 }
 
 SITE_ID = 2
+
+ACCOUNT_LOGOUT_ON_GET = True
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'

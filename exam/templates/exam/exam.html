@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}
+Home
+{% endblock %}
+
+{% block content %}
+
+<div class="container jumbotron">
+
+    <div id="QuestionModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg" role="content">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Login</h4>
+                    <button class="close modal-close">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        {# csrf_token #}
+                        <div class="form-row">
+                            <div class="form-group col-sm-4">
+                                <label for="answer" class="sr-only">Answer</label>
+                                <input type="text" class="form-control" name="answer" placeholder="Enter Answer" autofocus>
+                                <input type="hidden" name="question_id" id="form_question_id" value='' >
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <button type="submit" class="btn btn-primary btn-sm ml-auto">Add Answer</button>
+                            <button type="button" class="btn btn-secondary btn-sm ml-1 modal-close">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center">{{exam.title}}</h1>
+            <p class="text-center">{{exam.date}}</p>
+            <hr>
+        </div>
+        <div class="m-auto">
+            <div class="btn-group" role="group" aria-label="Basic example">
+                    {% for part in parts %}
+                    <button type="button" id="{{part.id}}" class="btn btn-secondary part_btn">{{part.title}}</button>
+                    {% endfor %}
+            </div>
+        </div>
+        <div class="col-12">
+            <div id="question_container" class="mt-5"></div>
+        </div>
+    </div>
+</div>
+<script>
+    function Clipboard_CopyTo(value) {
+        var tempInput = document.createElement("input");
+        tempInput.value = value;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+    }
+    document.querySelectorAll('.part_btn').forEach(
+        item => {
+            item.addEventListener('click', event => {
+
+                $.get(`/part/${item.id}`, data => {
+                    var html = '<p>No questions added</p>';
+                    if (data.questions.length !== 0){
+                        html = '';
+                        data.questions.forEach( (question, count) => {
+                            html += `
+                            <div class="questions border border-dark rounded m-2 text-center" id="question_${question[0]}">
+                            <p> ${count+1}. ${question[1]}</p>
+                            </div>
+                            <div id="content_${question[0]}"></div>
+                            `;
+                        });
+                    }
+                    $('#question_container').html(html);
+                    document.querySelectorAll('.questions').forEach(question => {
+                            question.addEventListener('click', function () {
+                                try{
+                                    document.getElementById('temp').remove();
+                                }catch(err){
+                                    console.log(err);
+                                }
+                                var content = this.childNodes[1].textContent;
+                                Clipboard_CopyTo(content);
+                                var question_id = this.id.slice(9);
+                                var temp_content = '';
+                                temp_content = `<div id="temp"><p>No answers yet</p><button id="add" question=${question_id} class="btn btn-block btn-info">Add Answer</button></div>`;
+                                $.get(`/option/${question_id}`, data => {
+                                    if (Object.keys(data.options).length !== 0){
+                                        temp_content = '';
+                                        var option_content = '';
+                                        data.options.forEach(option => {
+                                            option_content += `<p><span><img src="${option.answered_by_id}" height="30px"></span> ${option.title} <span style="margin: 50px"><i class="far fa-thumbs-up"></i></span></p>`;
+                                        });
+                                        option_content += `<button id="add" class="btn btn-block btn-info">Add Answer</button>`;
+                                        temp_content += `<div id='temp' class="border border-success p-3 m-3">${option_content}</div>`;
+                                        // console.log(temp_content);
+                                    }
+                                    document.getElementById(`content_${question_id}`).innerHTML = temp_content;
+                                    $('#add').on('click', function () {
+                                        $('#form_question_id').val(question_id);
+                                        $('#QuestionModal').modal();
+                                    });
+                                });
+                            });
+                        });
+                });
+            })
+        });
+
+        // $('#add').on('click', function() {console.log(this)});
+        $('.modal-close').on('click', event => $('#QuestionModal').modal('hide'));
+
+
+</script>
+  
+
+{% endblock %}

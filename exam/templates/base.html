@@ -1,0 +1,42 @@
+{% load static %}
+{% load socialaccount %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %} {% endblock %}</title>
+        <link rel="icon" type="image/png" href="{% static 'favicon.ico' %}">
+
+        <link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+        <script src="{% static 'jquery.min.js' %}"></script>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/v4-shims.css">
+
+    </head>
+    <body>
+        <nav class="navbar navbar-dark bg-primary navbar-expand-sm fixed-top">
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#Navbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <a class="navbar-brand mr-auto" href="#">ATB</a>
+                <div class="collapse navbar-collapse mr-auto" id="Navbar">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                        {% if request.user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'account_logout' %}">Logout</a></li>
+                        {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% provider_login_url 'google' %}">Login</a></li>
+                        {% endif%}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <hr>
+        {% block content %}
+        {% endblock %}
+    </body>
+    <script src="{% static 'popper.min.js' %}"></script>
+    <script src="{% static 'bootstrap.min.js' %}"></script>
+</html>

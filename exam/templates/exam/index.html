@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}
+Home
+{% endblock %}
+
+{% block content %}
+<style>
+  .fa-google {
+    background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg) 73% 55%/150% 150% no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+</style>
+
+  <div class="container jumbotron">
+    {% if user.is_authenticated %}
+    <h1>Project Group Exam</h1>
+    <p>Welcome, <b>{{ user.username }}</b> !</p>
+
+    <div class="row">
+      {% for exam in exams %}
+      <div class="col-sm-4 col-md-3">
+        <div class="card text-center">
+          <div class="card-header">
+            <h3><a href="{% url 'exam' exam.id %}">{{exam.title}}</a></h3>
+          </div>
+          <div class="card-footer">
+            <p>{{exam.date}}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+
+    <h1>Project Group Exam</h1>
+    
+    <a class="btn btn-white border" role="button" href="{% provider_login_url 'google' %}">
+      <i class="fa fa-google fa-1x" aria-hidden="true"></i>
+      Login with Google</a>
+    {% endif %}
+
+  </div>
+  
+
+{% endblock %}

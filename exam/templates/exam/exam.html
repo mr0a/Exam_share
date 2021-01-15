@@ -9,27 +9,56 @@ Home
 
 <div class="container jumbotron">
 
-    <div id="QuestionModal" class="modal fade" role="dialog">
+    <div id="OptionModal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg" role="content">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Login</h4>
+                    <h4 class="modal-title">Answer</h4>
                     <button class="close modal-close">
                         &times;
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form>
-                        {# csrf_token #}
+                    <form id="answer_form" method="POST">
+                        {% csrf_token %}
                         <div class="form-row">
                             <div class="form-group col-sm-4">
                                 <label for="answer" class="sr-only">Answer</label>
-                                <input type="text" class="form-control" name="answer" placeholder="Enter Answer" autofocus>
+                                <input type="text" class="form-control" name="answer" placeholder="Enter Answer" autocomplete="off">
                                 <input type="hidden" name="question_id" id="form_question_id" value='' >
                             </div>
                         </div>
                         <div class="form-row">
                             <button type="submit" class="btn btn-primary btn-sm ml-auto">Add Answer</button>
+                            <button type="button" class="btn btn-secondary btn-sm ml-1 modal-close">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="QuestionModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg" role="content">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Question</h4>
+                    <button class="close modal-close">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="question_form" method="POST">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group col-12">
+                                <label for="answer" class="sr-only">Question</label>
+                                <input type="text" class="form-control" name="question" placeholder="Enter Question" autocomplete="off">
+                                <input type="hidden" name="part_id" id="form_part_id" value='' >
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <button type="submit" class="btn btn-primary btn-sm ml-auto">Add Question</button>
                             <button type="button" class="btn btn-secondary btn-sm ml-1 modal-close">Cancel</button>
                         </div>
                     </form>
@@ -45,18 +74,49 @@ Home
             <hr>
         </div>
         <div class="m-auto">
-            <div class="btn-group" role="group" aria-label="Basic example">
+            <div class="btn-group" role="group" aria-label="Exam Parts">
                     {% for part in parts %}
                     <button type="button" id="{{part.id}}" class="btn btn-secondary part_btn">{{part.title}}</button>
+                    {% empty %}
+                    <h4>No Parts Added</h4>
                     {% endfor %}
             </div>
         </div>
         <div class="col-12">
-            <div id="question_container" class="mt-5"></div>
+            <div id="question_container" class="mt-5">
+            </div>
         </div>
     </div>
 </div>
 <script>
+    $( "#answer_form" ).submit(function( event ) {
+        $.post(window.location.href, $( "#answer_form" ).serialize() )
+        var question = $('#form_question_id').val();
+        $( '#answer_form' ).each(function(){
+            this.reset();
+        });
+        $('#OptionModal').modal('hide');
+        $(`#question_${question}`).click();
+        event.preventDefault();
+    });
+
+    $("#question_form").submit(function( event ) {
+        event.preventDefault();
+        $.post(window.location.href, $('#question_form').serialize())
+        var part = $('#form_part_id').val();
+        $( '#question_form' ).each(function(){
+            this.reset();
+        });
+        $('#QuestionModal').modal('hide');
+        $(`#${part}`).click();
+    });
+
+    function vote_function(id){
+        $.get(`/vote/${id}`, data => {
+            $(`#question_${data.id}`).click();
+        });
+    }
+
     function Clipboard_CopyTo(value) {
         var tempInput = document.createElement("input");
         tempInput.value = value;
@@ -70,19 +130,28 @@ Home
             item.addEventListener('click', event => {
 
                 $.get(`/part/${item.id}`, data => {
-                    var html = '<p>No questions added</p>';
+                    var content = '<div class="row"><div class="col-2 offset-10"><a id="add_question" href=#><i class="fa fa-plus fa-lg"></i></a></div></div>';
+                    var html = '<h2>No questions added</h2>';
                     if (data.questions.length !== 0){
                         html = '';
                         data.questions.forEach( (question, count) => {
                             html += `
-                            <div class="questions border border-dark rounded m-2 text-center" id="question_${question[0]}">
-                            <p> ${count+1}. ${question[1]}</p>
+                            <div class="questions col-12 border border-dark rounded m-2 text-center" id="question_${question[0]}">
+                            <h4> ${count+1}. ${question[1]}</h4>
                             </div>
                             <div id="content_${question[0]}"></div>
                             `;
                         });
                     }
-                    $('#question_container').html(html);
+            
+                    content += html;
+                    $('#question_container').html(content);
+                    $('#add_question').on('click', event => {
+                        console.log('Clicked');
+                        $('#form_part_id').val(item.id);
+                        $('#QuestionModal').modal();
+                        $('.modal-close').on('click', event => $('#QuestionModal').modal('hide'));
+                    });
                     document.querySelectorAll('.questions').forEach(question => {
                             question.addEventListener('click', function () {
                                 try{
@@ -94,22 +163,23 @@ Home
                                 Clipboard_CopyTo(content);
                                 var question_id = this.id.slice(9);
                                 var temp_content = '';
-                                temp_content = `<div id="temp"><p>No answers yet</p><button id="add" question=${question_id} class="btn btn-block btn-info">Add Answer</button></div>`;
+                                temp_content = `<div id="temp"><h4>No answers yet</h4><button id="add" class="btn btn-block btn-info m-2">Add Answer</button></div>`;
                                 $.get(`/option/${question_id}`, data => {
                                     if (Object.keys(data.options).length !== 0){
                                         temp_content = '';
                                         var option_content = '';
                                         data.options.forEach(option => {
-                                            option_content += `<p><span><img src="${option.answered_by_id}" height="30px"></span> ${option.title} <span style="margin: 50px"><i class="far fa-thumbs-up"></i></span></p>`;
+                                            option_content += `<p><span><img src="${option.answered_by_id}" height="30px"></span> ${option.title} <span style="margin: 50px"><a class="upvote ${option.upvoted ? 'text-primary' : 'text-dark'}" href="#" onclick="vote_function(${option.id}); return false;"><i class="far fa-thumbs-up"><span class="badge badge-light">  ${option.upvotes}</span></i></span></a></p>`;
                                         });
                                         option_content += `<button id="add" class="btn btn-block btn-info">Add Answer</button>`;
                                         temp_content += `<div id='temp' class="border border-success p-3 m-3">${option_content}</div>`;
                                         // console.log(temp_content);
                                     }
                                     document.getElementById(`content_${question_id}`).innerHTML = temp_content;
+
                                     $('#add').on('click', function () {
                                         $('#form_question_id').val(question_id);
-                                        $('#QuestionModal').modal();
+                                        $('#OptionModal').modal();
                                     });
                                 });
                             });
@@ -119,7 +189,7 @@ Home
         });
 
         // $('#add').on('click', function() {console.log(this)});
-        $('.modal-close').on('click', event => $('#QuestionModal').modal('hide'));
+        $('.modal-close').on('click', event => $('#OptionModal').modal('hide'));
 
 
 </script>

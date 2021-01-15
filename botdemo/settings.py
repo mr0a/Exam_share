@@ -167,7 +167,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
     'hd': 'bitsathy.ac.in'
 }
 
-SITE_ID = 2
+SITE_ID = 3
 
 ACCOUNT_LOGOUT_ON_GET = True
 

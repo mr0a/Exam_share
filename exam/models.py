@@ -15,7 +15,7 @@ class Part(models.Model):
     title = models.fields.CharField(max_length=20, default='Part A')
 
     def __str__(self):
-        return f'{str(self.Exam_id)} {self.title}'
+        return f'{str(self.Exam)} {self.title}'
 
     class Meta:
         constraints = [
@@ -40,3 +40,9 @@ class Option(models.Model):
 class Upvote(models.Model):
     option = models.ForeignKey(Option, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        unique_together = ('option', 'user')
+
+    def __str__(self):
+        return f'{self.user} upvotes {self.option}'

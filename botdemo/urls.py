@@ -22,9 +22,10 @@ from exam import views
 
 urlpatterns = [
     path('', views.index),
-    path('exam/<int:exam_id>', views.exam_part, name='exam'),
+    path('exam/<int:exam_id>', views.ExamView.as_view(), name='exam'),
     path('part/<int:part_id>', views.questions, name='questions'),
     path('option/<int:question_id>', views.options),
+    path('vote/<int:option_id>', views.vote),
     path('admin/', admin.site.urls),
     path('chat/', include('chatapp.urls')),
     path('accounts/', include('allauth.urls')),

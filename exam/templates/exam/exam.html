@@ -73,8 +73,20 @@ Home
             <p class="text-center">{{exam.date}}</p>
             <hr>
         </div>
-        <div class="m-auto">
-            <div class="btn-group" role="group" aria-label="Exam Parts">
+        <div class="col-5 offset-7">
+            <!-- https://www.w3schools.com/howto/howto_css_search_button.asp -->
+            <form id="searchForm">
+                <div class="form-row">
+                    <div class="col-7">
+                        <input type="text" class="form-control" placeholder="Search.." name="search">
+                    </div>
+                    <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
+                    <a href="{% url 'exam' exam.id %}"> <i class="fa fa-undo fa-lg p-2"></i></a>
+                </div>
+            </form>
+            </div>
+        <div class="col-12">
+            <div class="btn-group offset-5" role="group" aria-label="Exam Parts">
                     {% for part in parts %}
                     <button type="button" id="{{part.id}}" class="btn btn-secondary part_btn">{{part.title}}</button>
                     {% empty %}
@@ -90,7 +102,7 @@ Home
 </div>
 <script>
     $( "#answer_form" ).submit(function( event ) {
-        $.post(window.location.href, $( "#answer_form" ).serialize() )
+        $.post(window.location.href, $( "#answer_form" ).serialize() );
         var question = $('#form_question_id').val();
         $( '#answer_form' ).each(function(){
             this.reset();
@@ -98,6 +110,34 @@ Home
         $('#OptionModal').modal('hide');
         $(`#question_${question}`).click();
         event.preventDefault();
+    });
+
+    $("#searchForm").submit(function(event) {
+        event.preventDefault();
+        $.get(window.location.href, $("#searchForm").serialize(), function (data) {
+            html = '';
+            data.questions.forEach( (question, count) => {
+                var options = '';
+                question.options.forEach(option => {
+                    options += `<p><span><img src="${option.answered_by_id}" height="30px"></span>
+                    ${option.title}
+                    <span style="margin: 50px">
+                    <a class="upvote ${option.upvoted ? 'text-primary' : 'text-dark'}" href="#" onclick="return false;">
+                    <i class="far fa-thumbs-up"><span class="badge badge-light">  ${option.upvotes}</span></i></span></a></p>
+                    `;
+                });
+                console.log(options);
+                html += `
+                    <div class="questions col-12 border border-dark rounded m-2 text-center">
+                    <h4> ${count+1}. ${question.title}</h4>
+                    ${options}
+                    </div>`;
+            });
+            $('#question_container').html(html);
+            $( '#searchForm' ).each(function(){
+                this.reset();
+            });
+        });
     });
 
     $("#question_form").submit(function( event ) {

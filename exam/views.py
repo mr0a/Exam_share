@@ -16,6 +16,28 @@ def index(req):
 
 class ExamView(View):
     def get(self, req, exam_id):
+        if req.GET.get('search'):
+            questions = list(models.Question.objects.filter(title__contains=req.GET.get('search')).values())
+            # print(questions)
+            for question in questions:
+                options = list(models.Option.objects.filter(question_id=question['id']).values())
+                question['options'] = options
+                # print(question)
+                if len(options) != 0:
+                    for option in options:
+                        user_id = option['answered_by_id']
+                        user = SocialAccount.objects.filter(user_id=user_id).values()
+                        user = list(user)
+                        # print(user[0]['extra_data']['picture'])
+                        option['answered_by_id'] = user[0]['extra_data']['picture']
+                        upvotes = models.Upvote.objects.filter(option_id=option['id'])
+                        upvoted = models.Upvote.objects.filter(option_id=option['id'], user_id=req.user.id)
+                        option['upvotes'] = len(upvotes)
+                        option['upvoted'] = True if len(upvoted) != 0 else False
+                        # print(option)
+                question['options'].sort(key=myfun, reverse=True)
+            return JsonResponse({'questions': questions})
+            
         parts = models.Part.objects.filter(Exam=exam_id)
         exam = models.Exam.objects.filter(id=exam_id)[0]
         return render(req, 'exam/exam.html', context={'parts': parts, 'exam': exam })

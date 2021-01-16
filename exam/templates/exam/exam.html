@@ -73,12 +73,12 @@ Home
             <p class="text-center">{{exam.date}}</p>
             <hr>
         </div>
-        <div class="col-5 offset-7">
+        <div class="col-12 col-md-5 offset-md-7 p-2">
             <!-- https://www.w3schools.com/howto/howto_css_search_button.asp -->
             <form id="searchForm">
                 <div class="form-row">
-                    <div class="col-7">
-                        <input type="text" class="form-control" placeholder="Search.." name="search">
+                    <div class="col-8">
+                        <input type="text" class="form-control" placeholder="Search.." name="search" autocomplete="off">
                     </div>
                     <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
                     <a href="{% url 'exam' exam.id %}"> <i class="fa fa-undo fa-lg p-2"></i></a>
@@ -101,6 +101,11 @@ Home
     </div>
 </div>
 <script>
+    function readmore(id) {
+        $(`#more-${id}`).toggle();
+
+    }
+
     $( "#answer_form" ).submit(function( event ) {
         $.post(window.location.href, $( "#answer_form" ).serialize() );
         var question = $('#form_question_id').val();
@@ -177,7 +182,9 @@ Home
                         data.questions.forEach( (question, count) => {
                             html += `
                             <div class="questions col-12 border border-dark rounded m-2 text-center" id="question_${question[0]}">
-                            <h4> ${count+1}. ${question[1]}</h4>
+                            <h6> 
+                                ${count+1}. ${question[1].slice(0, 50)} <span id="more-${count+1}" class="more">${question[1].slice(50)}</span><a id="dots-${count+1}" href="#" onclick="readmore('${count+1}')"> Readmore...</a>
+                            </h6>
                             </div>
                             <div id="content_${question[0]}"></div>
                             `;
@@ -200,6 +207,7 @@ Home
                                     console.log(err);
                                 }
                                 var content = this.childNodes[1].textContent;
+                                content = content.replace('Readmore...', '');
                                 Clipboard_CopyTo(content);
                                 var question_id = this.id.slice(9);
                                 var temp_content = '';
@@ -233,6 +241,9 @@ Home
 
 
 </script>
+<style>
+    .more {display: none;}
+</style>
   
 
 {% endblock %}
